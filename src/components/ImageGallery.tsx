@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CategoryFilter } from "./CategoryFilter";
@@ -41,6 +41,31 @@ export function ImageGallery() {
       setCurrent(0);
     }
   }, [activeCategory, api]);
+
+  // Keyboard navigation
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      // Don't navigate if lightbox is open or user is typing in an input
+      if (selectedImage) return;
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        api?.scrollPrev();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        api?.scrollNext();
+      }
+    },
+    [api, selectedImage]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
