@@ -102,27 +102,32 @@ export function ImageGallery() {
           <Carousel
             setApi={setApi}
             opts={{
-              loop: true,
+              loop: filteredImages.length > 1,
               align: "center",
+              containScroll: false,
             }}
             className="w-full"
           >
             {/* Navigation Arrows */}
-            <button
-              onClick={() => api?.scrollPrev()}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-card/80 text-foreground hover:bg-card transition-colors backdrop-blur-sm"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
+            {filteredImages.length > 1 && (
+              <>
+                <button
+                  onClick={() => api?.scrollPrev()}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-card/80 text-foreground hover:bg-card transition-colors backdrop-blur-sm"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
 
-            <button
-              onClick={() => api?.scrollNext()}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-card/80 text-foreground hover:bg-card transition-colors backdrop-blur-sm"
-              aria-label="Next image"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
+                <button
+                  onClick={() => api?.scrollNext()}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-card/80 text-foreground hover:bg-card transition-colors backdrop-blur-sm"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
 
             <CarouselContent className="-ml-2 md:-ml-4">
               {filteredImages.map((image, index) => (
