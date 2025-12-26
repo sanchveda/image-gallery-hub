@@ -1,57 +1,46 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CategoryFilter } from "./CategoryFilter";
 import { Lightbox } from "./Lightbox";
 import { portfolioImages, type Category, type PortfolioImage } from "@/data/portfolioData";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 export function ImageGallery() {
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [selectedImage, setSelectedImage] = useState<PortfolioImage | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const [emblaRef, emblaApi] = useEmblaCarousel({ 
-    loop: true,
-    align: "center",
-  });
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
 
   const filteredImages = useMemo(() => {
     if (activeCategory === "All") return portfolioImages;
     return portfolioImages.filter((img) => img.category === activeCategory);
   }, [activeCategory]);
 
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
   useEffect(() => {
-    if (!emblaApi) return;
-    onSelect();
-    emblaApi.on("select", onSelect);
-    emblaApi.on("reInit", onSelect);
-    return () => {
-      emblaApi.off("select", onSelect);
-      emblaApi.off("reInit", onSelect);
-    };
-  }, [emblaApi, onSelect]);
+    if (!api) return;
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
 
   // Reset carousel when category changes
   useEffect(() => {
-    if (emblaApi) {
-      emblaApi.scrollTo(0);
-      setSelectedIndex(0);
+    if (api) {
+      api.scrollTo(0);
+      setCurrent(0);
     }
-  }, [activeCategory, emblaApi]);
+  }, [activeCategory, api]);
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
@@ -83,32 +72,38 @@ export function ImageGallery() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="relative"
+          className="relative px-12"
         >
-          {/* Navigation Arrows */}
-          <button
-            onClick={scrollPrev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-card/80 text-foreground hover:bg-card transition-colors backdrop-blur-sm -translate-x-1/2 sm:translate-x-0"
-            aria-label="Previous image"
+          <Carousel
+            setApi={setApi}
+            opts={{
+              loop: true,
+              align: "center",
+            }}
+            className="w-full"
           >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
+            {/* Navigation Arrows */}
+            <button
+              onClick={() => api?.scrollPrev()}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-card/80 text-foreground hover:bg-card transition-colors backdrop-blur-sm"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
 
-          <button
-            onClick={scrollNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-card/80 text-foreground hover:bg-card transition-colors backdrop-blur-sm translate-x-1/2 sm:translate-x-0"
-            aria-label="Next image"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
+            <button
+              onClick={() => api?.scrollNext()}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-card/80 text-foreground hover:bg-card transition-colors backdrop-blur-sm"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
 
-          {/* Carousel Container */}
-          <div className="overflow-hidden mx-8 sm:mx-16" ref={emblaRef}>
-            <div className="flex">
+            <CarouselContent className="-ml-2 md:-ml-4">
               {filteredImages.map((image, index) => (
-                <div
+                <CarouselItem
                   key={image.id}
-                  className="flex-[0_0_100%] sm:flex-[0_0_80%] lg:flex-[0_0_60%] min-w-0 px-2 sm:px-4"
+                  className="pl-2 md:pl-4 basis-full sm:basis-4/5 lg:basis-3/5"
                 >
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -136,19 +131,19 @@ export function ImageGallery() {
                       </div>
                     </div>
                   </motion.div>
-                </div>
+                </CarouselItem>
               ))}
-            </div>
-          </div>
+            </CarouselContent>
+          </Carousel>
 
           {/* Dots Navigation */}
           <div className="flex justify-center gap-2 mt-8">
             {filteredImages.map((_, index) => (
               <button
                 key={index}
-                onClick={() => emblaApi?.scrollTo(index)}
+                onClick={() => api?.scrollTo(index)}
                 className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  index === selectedIndex
+                  index === current
                     ? "bg-primary w-8"
                     : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                 }`}
@@ -159,7 +154,7 @@ export function ImageGallery() {
 
           {/* Image Counter */}
           <p className="text-center text-muted-foreground text-sm mt-4">
-            {selectedIndex + 1} / {filteredImages.length}
+            {current + 1} / {count}
           </p>
         </motion.div>
       </div>
