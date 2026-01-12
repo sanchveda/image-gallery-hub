@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Plus, X, Check } from 'lucide-react';
@@ -13,17 +13,19 @@ import { useToast } from '@/hooks/use-toast';
 const AlbumDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { albums, updateAlbum } = useAlbums();
+  const { albums, updateAlbum, isLoading: albumsLoading } = useAlbums();
   const { images, isLoading, addImage, removeImage } = useAlbumImages(id ?? null);
   const { toast } = useToast();
+  const uploadInputId = useId();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const album = albums.find((a) => a.id === id);
 
-  const handleAddImage = async (image: typeof portfolioImages[0]) => {
+  const handleAddImage = async (image: { src: string; title: string; category: string }) => {
     if (!id) return;
 
     try {
@@ -68,6 +70,40 @@ const AlbumDetail = () => {
     }
   };
 
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+
+  const handleUploadFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    try {
+      const uploadFiles = Array.from(files);
+      const dataUrls = await Promise.all(uploadFiles.map((file) => readFileAsDataUrl(file)));
+      for (let index = 0; index < uploadFiles.length; index += 1) {
+        const file = uploadFiles[index];
+        const dataUrl = dataUrls[index];
+        await handleAddImage({
+          src: dataUrl,
+          title: file.name,
+          category: 'Uploaded',
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Upload failed',
+        description: error.message ?? 'Unable to upload image.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const openLightbox = (index: number) => {
     setCurrentImageIndex(index);
     setLightboxOpen(true);
@@ -75,12 +111,19 @@ const AlbumDetail = () => {
 
   const addedImageSrcs = new Set(images.map((img) => img.image_src));
 
-  if (!user) {
+  if (!albumsLoading && !album) {
     return (
       <main className="min-h-screen bg-background">
         <Header />
         <section className="pt-32 pb-20 px-6 text-center">
-          <p className="text-muted-foreground">Please sign in to view albums.</p>
+          <p className="text-muted-foreground">Album not found.</p>
+          <Link
+            to="/albums"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mt-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Albums
+          </Link>
         </section>
         <Footer />
       </main>
@@ -116,10 +159,12 @@ const AlbumDetail = () => {
                 )}
               </div>
 
-              <Button onClick={() => setShowAddModal(true)} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Add Images
-              </Button>
+              {user ? (
+                <Button onClick={() => setShowAddModal(true)} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Add Images
+                </Button>
+              ) : null}
             </div>
           </motion.div>
 
@@ -136,12 +181,14 @@ const AlbumDetail = () => {
               className="text-center py-20"
             >
               <p className="text-muted-foreground text-lg mb-6">
-                This album is empty. Add some images to get started!
+                {user ? 'This album is empty. Add some images to get started!' : 'This album is empty.'}
               </p>
-              <Button onClick={() => setShowAddModal(true)} size="lg" className="gap-2">
-                <Plus className="w-5 h-5" />
-                Add Images
-              </Button>
+              {user ? (
+                <Button onClick={() => setShowAddModal(true)} size="lg" className="gap-2">
+                  <Plus className="w-5 h-5" />
+                  Add Images
+                </Button>
+              ) : null}
             </motion.div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -165,16 +212,18 @@ const AlbumDetail = () => {
                       {image.image_title}
                     </p>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveImage(image.id);
-                    }}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-destructive/80"
-                    aria-label="Remove from album"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  {user ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveImage(image.id);
+                      }}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-destructive/80"
+                      aria-label="Remove from album"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  ) : null}
                 </motion.div>
               ))}
             </div>
@@ -186,7 +235,7 @@ const AlbumDetail = () => {
 
       {/* Add Images Modal */}
       <AnimatePresence>
-        {showAddModal && (
+        {showAddModal && user && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -212,7 +261,33 @@ const AlbumDetail = () => {
                 Add Images to Album
               </h2>
 
-              <div className="overflow-y-auto max-h-[60vh] pr-2">
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Upload from your computer</p>
+                    <p className="text-xs text-muted-foreground">Images stay in this album unless you delete them.</p>
+                  </div>
+                  <input
+                    id={uploadInputId}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    disabled={isUploading}
+                    onChange={(event) => {
+                      void handleUploadFiles(event.target.files);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+                  <Button asChild variant="outline" className="gap-2" disabled={isUploading}>
+                    <label htmlFor={uploadInputId} className="cursor-pointer">
+                      <Plus className="w-4 h-4" />
+                      {isUploading ? 'Uploading...' : 'Add Images'}
+                    </label>
+                  </Button>
+                </div>
+
+                <div className="overflow-y-auto max-h-[60vh] pr-2">
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {portfolioImages.map((image) => {
                     const isAdded = addedImageSrcs.has(image.src);
@@ -241,6 +316,7 @@ const AlbumDetail = () => {
                       </button>
                     );
                   })}
+                </div>
                 </div>
               </div>
             </motion.div>

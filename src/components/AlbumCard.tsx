@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Folder, Trash2, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Album, useAlbums } from '@/hooks/useAlbums';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 interface AlbumCardProps {
@@ -11,6 +12,7 @@ interface AlbumCardProps {
 
 export function AlbumCard({ album, index }: AlbumCardProps) {
   const { deleteAlbum } = useAlbums();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -73,13 +75,15 @@ export function AlbumCard({ album, index }: AlbumCardProps) {
               <Image className="w-3.5 h-3.5" />
               View images
             </span>
-            <button
-              onClick={handleDelete}
-              className="p-2 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
-              aria-label="Delete album"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {user ? (
+              <button
+                onClick={handleDelete}
+                className="p-2 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                aria-label="Delete album"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            ) : null}
           </div>
         </div>
       </Link>

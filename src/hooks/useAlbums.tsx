@@ -27,9 +27,8 @@ export function useAlbums() {
   const queryClient = useQueryClient();
 
   const albumsQuery = useQuery({
-    queryKey: ['albums', user?.id],
+    queryKey: ['albums', user?.id ?? 'public'],
     queryFn: async () => {
-      if (!user) return [];
       const { data, error } = await supabase
         .from('albums')
         .select('*')
@@ -37,7 +36,6 @@ export function useAlbums() {
       if (error) throw error;
       return data as Album[];
     },
-    enabled: !!user,
   });
 
   const createAlbum = useMutation({
@@ -57,7 +55,18 @@ export function useAlbums() {
   });
 
   const updateAlbum = useMutation({
-    mutationFn: async ({ id, name, description, cover_image }: { id: string; name?: string; description?: string; cover_image?: string }) => {
+    mutationFn: async ({
+      id,
+      name,
+      description,
+      cover_image,
+    }: {
+      id: string;
+      name?: string;
+      description?: string;
+      cover_image?: string;
+    }) => {
+      if (!user) throw new Error('Not authenticated');
       const { data, error } = await supabase
         .from('albums')
         .update({ name, description, cover_image })
@@ -74,6 +83,7 @@ export function useAlbums() {
 
   const deleteAlbum = useMutation({
     mutationFn: async (id: string) => {
+      if (!user) throw new Error('Not authenticated');
       const { error } = await supabase.from('albums').delete().eq('id', id);
       if (error) throw error;
     },
@@ -93,10 +103,11 @@ export function useAlbums() {
 }
 
 export function useAlbumImages(albumId: string | null) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const imagesQuery = useQuery({
-    queryKey: ['album-images', albumId],
+    queryKey: ['album-images', albumId, user?.id ?? 'public'],
     queryFn: async () => {
       if (!albumId) return [];
       const { data, error } = await supabase
@@ -122,6 +133,7 @@ export function useAlbumImages(albumId: string | null) {
       image_title: string;
       image_category: string;
     }) => {
+      if (!user) throw new Error('Not authenticated');
       const { data, error } = await supabase
         .from('album_images')
         .insert({
@@ -143,6 +155,7 @@ export function useAlbumImages(albumId: string | null) {
 
   const removeImage = useMutation({
     mutationFn: async (id: string) => {
+      if (!user) throw new Error('Not authenticated');
       const { error } = await supabase.from('album_images').delete().eq('id', id);
       if (error) throw error;
     },
