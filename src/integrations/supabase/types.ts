@@ -14,7 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      album_images: {
+        Row: {
+          album_id: string
+          created_at: string
+          display_order: number
+          id: string
+          image_category: string
+          image_src: string
+          image_title: string
+        }
+        Insert: {
+          album_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_category: string
+          image_src: string
+          image_title: string
+        }
+        Update: {
+          album_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_category?: string
+          image_src?: string
+          image_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "album_images_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      albums: {
+        Row: {
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
