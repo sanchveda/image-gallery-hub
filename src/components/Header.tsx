@@ -13,19 +13,19 @@ export function Header() {
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link to="/" className="font-display text-xl font-semibold text-foreground">
-          Portfolio
+          Sanchayan
         </Link>
 
         <nav className="hidden sm:flex items-center gap-8">
           <Link 
             to="/#gallery" 
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-base text-muted-foreground hover:text-foreground transition-colors"
           >
             Gallery
           </Link>
           <Link 
             to="/albums" 
-            className={`text-sm transition-colors ${
+            className={`text-base transition-colors ${
               location.pathname.startsWith('/albums') 
                 ? 'text-primary font-medium' 
                 : 'text-muted-foreground hover:text-foreground'
@@ -35,13 +35,13 @@ export function Header() {
           </Link>
           <a 
             href="#about" 
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-base text-muted-foreground hover:text-foreground transition-colors"
           >
             About
           </a>
           <a 
             href="#contact" 
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-base text-muted-foreground hover:text-foreground transition-colors"
           >
             Contact
           </a>

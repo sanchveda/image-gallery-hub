@@ -48,6 +48,7 @@ export function ImageGallery() {
       // Don't navigate if lightbox is open or user is typing in an input
       if (selectedImage) return;
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      if (event.defaultPrevented) return;
 
       if (event.key === "ArrowLeft") {
         event.preventDefault();

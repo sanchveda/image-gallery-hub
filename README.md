@@ -64,6 +64,15 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
+## GitHub Pages deployment
+
+This repo is configured for GitHub Pages at `/portfolio-manager/`.
+
+Steps:
+1) Install the deploy helper: `npm i -D gh-pages`
+2) Build and deploy: `npm run deploy`
+3) In GitHub, go to Settings → Pages and set the source to the `gh-pages` branch.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
@@ -71,3 +80,17 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Albums from folders
+
+Albums are built from folders under `src/assets/albums`.
+
+How it works:
+- Create a folder per album, e.g. `src/assets/albums/prague/`.
+- Drop images inside the folder (`.jpg`, `.png`, `.webp`, `.avif`, `.gif`).
+- Album names come from the folder name (e.g. `prague` -> `Prague`).
+- Empty folders are ignored.
+
+After adding or removing images, restart the dev server so Vite picks up new files.
+
+Thumbnails are generated automatically when you run `npm run dev` or `npm run build`.

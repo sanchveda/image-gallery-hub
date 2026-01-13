@@ -1,9 +1,7 @@
 import { motion } from 'framer-motion';
-import { Folder, Trash2, Image } from 'lucide-react';
+import { Folder } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Album, useAlbums } from '@/hooks/useAlbums';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import type { Album } from '@/hooks/useAlbums';
 
 interface AlbumCardProps {
   album: Album;
@@ -11,31 +9,6 @@ interface AlbumCardProps {
 }
 
 export function AlbumCard({ album, index }: AlbumCardProps) {
-  const { deleteAlbum } = useAlbums();
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!confirm(`Are you sure you want to delete "${album.name}"?`)) return;
-
-    try {
-      await deleteAlbum.mutateAsync(album.id);
-      toast({
-        title: 'Album deleted',
-        description: `"${album.name}" has been removed.`,
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -70,21 +43,7 @@ export function AlbumCard({ album, index }: AlbumCardProps) {
               {album.description}
             </p>
           )}
-          <div className="mt-3 flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Image className="w-3.5 h-3.5" />
-              View images
-            </span>
-            {user ? (
-              <button
-                onClick={handleDelete}
-                className="p-2 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
-                aria-label="Delete album"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            ) : null}
-          </div>
+          <div className="mt-3 flex items-center justify-between" />
         </div>
       </Link>
     </motion.div>

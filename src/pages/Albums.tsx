@@ -1,20 +1,11 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, LogIn, LogOut } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { Button } from '@/components/ui/button';
 import { AlbumCard } from '@/components/AlbumCard';
-import { AuthModal } from '@/components/AuthModal';
-import { CreateAlbumModal } from '@/components/CreateAlbumModal';
-import { useAuth } from '@/hooks/useAuth';
 import { useAlbums } from '@/hooks/useAlbums';
 
 const Albums = () => {
-  const { user, loading, signOut } = useAuth();
   const { albums, isLoading } = useAlbums();
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   return (
     <main className="min-h-screen bg-background">
@@ -33,30 +24,8 @@ const Albums = () => {
                 Albums
               </h1>
               <p className="mt-2 text-muted-foreground">
-                {user
-                  ? 'Organize your images into custom collections'
-                  : 'Public album gallery'}
+                Curated image collections
               </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {user ? (
-                <Button onClick={() => setShowCreateModal(true)} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  New Album
-                </Button>
-              ) : null}
-              {loading ? null : user ? (
-                <Button variant="outline" onClick={() => signOut()} className="gap-2">
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </Button>
-              ) : (
-                <Button variant="outline" onClick={() => setShowAuthModal(true)} className="gap-2">
-                  <LogIn className="w-4 h-4" />
-                  Owner Sign In
-                </Button>
-              )}
             </div>
           </motion.div>
 
@@ -73,14 +42,8 @@ const Albums = () => {
               className="text-center py-20"
             >
               <p className="text-muted-foreground text-lg mb-6">
-                {user ? "You haven't created any albums yet" : 'No albums published yet.'}
+                No albums published yet.
               </p>
-              {user ? (
-                <Button onClick={() => setShowCreateModal(true)} size="lg" className="gap-2">
-                  <Plus className="w-5 h-5" />
-                  Create Your First Album
-                </Button>
-              ) : null}
             </motion.div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -93,8 +56,6 @@ const Albums = () => {
       </section>
 
       <Footer />
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-      <CreateAlbumModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
     </main>
   );
 };
